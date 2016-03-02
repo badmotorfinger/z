@@ -35,6 +35,10 @@ z foo -p HKLM,C,D
 
 Remove the current directory from the datafile
 
+.PARAMETER $Purge
+
+Clean up all history entries that cannot be resolved
+
 .NOTES
 
 Current PowerShell implementation is very crude and does not yet support all of the options of the original z bash script.
@@ -73,14 +77,24 @@ function z {
 
 	[Alias('x')]
 	[switch]
-	$Remove = $null)
+  $Remove = $null,
 
-	if ((-not $Remove) -and [string]::IsNullOrWhiteSpace($JumpPath)) { Get-Help z; return; }
+  [Alias('d')]
+  [switch]
+  $Purge = $null
+
+  )
+
+
+	if (((-not $Purge) -and (-not $Remove)) -and [string]::IsNullOrWhiteSpace($JumpPath)) { Get-Help z; return; }
 
 	if ((Test-Path $cdHistory)) {
 
 		if ($Remove) {
 			Save-CdCommandHistory $Remove
+
+		} elseif ($Purge) {
+      Cleanup-CdCommandHistory
 
 		} else {
 
@@ -100,7 +114,9 @@ function z {
 			$global:history |
 				? { Get-DirectoryEntryMatchPredicate -path $_.Path -jumpPath $JumpPath -ProviderRegex $providerRegex } | Get-ArgsFilter -Option $Option |
 				% {
-					$list += $_
+            If (Test-Path $_.Path.FullName) {
+              $list += $_
+            }
 				}
 
 			if ($Option -ne $null -and $Option.Length -gt 0 -and $Option[0] -eq 'l') {
@@ -372,6 +388,56 @@ function Get-Frecency($rank, $time) {
     return $rank/4
 }
 
+function Cleanup-CdCommandHistory() {
+
+	try {
+
+		for($i = 0; $i -lt $global:history.Length; $i++) {
+
+			$line = $global:history[$i]
+
+        If (!(Test-Path $line.Path.FullName)) {
+
+						$global:history[$i] = $null
+						Write-Host "Removed Entry $line.Path.FullName" -ForegroundColor Red
+
+				}
+
+		}
+
+    Obsolete-CdCommandHistory
+    WriteHistoryToDisk
+
+	} catch {
+		Write-Host $_.Exception.ToString() -ForegroundColor Red
+	}
+}
+
+function Obsolete-CdCommandHistory () {
+
+		if ($global:history.Length -gt 1000) {
+
+				$global:history | ? { $_ -ne $null } | % {$i = 0} {
+
+				 	  $lineObj = $_
+					  $lineObj.Rank = $lineObj.Rank * 0.99
+
+					  # If it's been accessed in the last 14 days it can stay
+					  # or
+					  # If it's rank is greater than 20 and been accessed in the last 30 days it can stay
+					  if ($lineObj.Age -lt 1209600 -or ($lineObj.Rank -ge 5 -and $lineObj.Age -lt 2592000)) {
+						    #$global:history[$i] = ConvertTo-DirectoryEntry (ConvertTo-TextualHistoryEntry $lineObj.Rank $lineObj.Path.FullName $lineObj.Time)
+					  } else {
+
+					      Write-Host "Purging old item : Rank:" $lineObj.Rank "Age:" ($lineObj.Age/60/60) "Path:" $lineObj.Path.FullName -ForegroundColor Yellow
+						    $global:history[$i] = $null
+					  }
+					  $i++;
+				}
+		}
+
+}
+
 function Save-CdCommandHistory($removeCurrentDirectory = $false) {
 
 	$currentDirectory = Get-FormattedLocation
@@ -423,29 +489,9 @@ function Save-CdCommandHistory($removeCurrentDirectory = $false) {
 				$runningTotal += 1
 			}
 
-			if ($runningTotal -gt 1000) {
-
-				 $global:history | ? { $_ -ne $null } | % {$i = 0} {
-
-				 	$lineObj = $_
-					$lineObj.Rank = $lineObj.Rank * 0.99
-
-					Write-Host "Rank:" $lineObj.Rank "Age:" ($lineObj.Age/60/60) "Path:" $lineObj.Path.FullName
-
-					# If it's been accessed in the last 14 days it can stay
-					# or
-					# If it's rank is greater than 20 and been accessed in the last 30 days it can stay
-					if ($lineObj.Age -lt 1209600 -or ($lineObj.Rank -ge 5 -and $lineObj.Age -lt 2592000)) {
-						#$global:history[$i] = ConvertTo-DirectoryEntry (ConvertTo-TextualHistoryEntry $lineObj.Rank $lineObj.Path.FullName $lineObj.Time)
-					} else {
-						$global:history[$i] = $null
-					}
-					$i++;
-				}
-			}
-		}
-
-        WriteHistoryToDisk
+      Obsolete-CdCommandHistory
+    }
+    WriteHistoryToDisk
 
 	} catch {
 		Write-Host $_.Exception.ToString() -ForegroundColor Red
