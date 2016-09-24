@@ -412,7 +412,6 @@ function Cleanup-CdCommandHistory() {
       }
     }
     Remove-Old-History
-    WriteHistoryToDisk
 	} catch {
 		Write-Host $_.Exception.ToString() -ForegroundColor Red
 	}
@@ -493,8 +492,6 @@ function Save-CdCommandHistory($removeCurrentDirectory = $false) {
 			}
       	Remove-Old-History
 		}
-
-	WriteHistoryToDisk
 
 	} catch {
 		Write-Host $_.Exception.ToString() -ForegroundColor Red
@@ -618,6 +615,10 @@ function Get-ArgsFilter {
 $global:history = @()
 if ((Test-Path $cdHistory)) {
 	$global:history += Get-Content -Path $cdHistory -Encoding UTF8 | ? { (-not [String]::IsNullOrWhiteSpace($_)) } | ConvertTo-DirectoryEntry
+}
+
+Register-EngineEvent -SourceIdentifier powershell.exiting -SupportEvent -Action {
+  WriteHistoryToDisk
 }
 
 $orig_cd = (Get-Alias -Name 'cd').Definition
