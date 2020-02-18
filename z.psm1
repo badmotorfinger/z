@@ -665,6 +665,4 @@ if (-not $global:options) { $global:options = @{CustomArgumentCompleters = @{ };
 
 $global:options['CustomArgumentCompleters']['z:JumpPath'] = $Completion_RunningService
 
-if ($IsWindows) {
-    $function:tabexpansion2 = $function:tabexpansion2 -replace 'End\r\n{', 'End { if ($null -ne $options) { $options += $global:options} else {$options = $global:options}'
-}
+$function:tabexpansion2 = $function:tabexpansion2 -replace 'End(\r\n|\n){', 'End { if ($null -ne $options) { $options += $global:options} else {$options = $global:options}'
