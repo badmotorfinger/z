@@ -333,7 +333,7 @@ function Get-DirectoryEntryMatchPredicate {
             $providerMatches = [System.Text.RegularExpressions.Regex]::Match($Path.FullName, $ProviderRegex).Success
         }
 
-        if ($IsWindows -And $providerMatches) {
+        if ($providerMatches) {
             
             # Allows matching of entire names. Remove the first two characters, added by PowerShell when the user presses the TAB key.
             if ($JumpPath.StartsWith('.\')) {
@@ -341,15 +341,16 @@ function Get-DirectoryEntryMatchPredicate {
             }
 
             [System.Text.RegularExpressions.Regex]::Match($Path.Name, [System.Text.RegularExpressions.Regex]::Escape($JumpPath), [System.Text.RegularExpressions.RegexOptions]::IgnoreCase).Success
-        } else {
-            [System.Text.RegularExpressions.Regex]::Match($Path.Name, [System.Text.RegularExpressions.Regex]::Escape($JumpPath), [System.Text.RegularExpressions.RegexOptions]::IgnoreCase).Success
         }
     }
 }
 
 function Get-CurrentSessionProviderDrives([System.Collections.ArrayList] $ProviderDrives) {
 
-    if ($ProviderDrives -ne $null -and $ProviderDrives.Length -gt 0) {
+    if($IsLinux -Or $IsMacOS) {
+        # Always only '/' which needs escaped to work in a regex
+        '\/'
+    } elseif ($ProviderDrives -ne $null -and $ProviderDrives.Length -gt 0) {
         Get-ProviderDrivesRegex $ProviderDrives
     } else {
 
