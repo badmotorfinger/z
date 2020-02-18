@@ -1,4 +1,4 @@
-﻿$cdHistory = Join-Path -Path $Env:USERPROFILE -ChildPath '\.cdHistory'
+﻿$cdHistory = Join-Path -Path $Env:HOME -ChildPath '\.cdHistory'
 
 <#
 
@@ -333,13 +333,15 @@ function Get-DirectoryEntryMatchPredicate {
             $providerMatches = [System.Text.RegularExpressions.Regex]::Match($Path.FullName, $ProviderRegex).Success
         }
 
-        if ($providerMatches) {
+        if ($IsWindows -And $providerMatches) {
             
             # Allows matching of entire names. Remove the first two characters, added by PowerShell when the user presses the TAB key.
             if ($JumpPath.StartsWith('.\')) {
                 $JumpPath = $JumpPath.Substring(2).TrimEnd('\')
             }
 
+            [System.Text.RegularExpressions.Regex]::Match($Path.Name, [System.Text.RegularExpressions.Regex]::Escape($JumpPath), [System.Text.RegularExpressions.RegexOptions]::IgnoreCase).Success
+        } else {
             [System.Text.RegularExpressions.Regex]::Match($Path.Name, [System.Text.RegularExpressions.Regex]::Escape($JumpPath), [System.Text.RegularExpressions.RegexOptions]::IgnoreCase).Success
         }
     }
@@ -650,4 +652,4 @@ if (-not $global:options) { $global:options = @{CustomArgumentCompleters = @{};N
 
 $global:options['CustomArgumentCompleters']['z:JumpPath'] = $Completion_RunningService
 
-$function:tabexpansion2 = $function:tabexpansion2 -replace 'End\r\n{','End { if ($null -ne $options) { $options += $global:options} else {$options = $global:options}'
+$function:tabexpansion2 = $function:tabexpansion2 -replace 'End(\r\n|\n){','End { if ($null -ne $options) { $options += $global:options} else {$options = $global:options}'
