@@ -61,31 +61,31 @@ z foo -o Time
 #>
 function z {
     param(
-    [Parameter(Position=0)]
-    [string]
-    ${JumpPath},
+        [Parameter(Position = 0)]
+        [string]
+        ${JumpPath},
 
-    [ValidateSet("Time", "T", "Frecency", "F", "Rank", "R")]
-    [Alias('o')]
-    [string]
-    $Option = 'Frecency',
+        [ValidateSet("Time", "T", "Frecency", "F", "Rank", "R")]
+        [Alias('o')]
+        [string]
+        $Option = 'Frecency',
 
-    [Alias('c')]
-    [switch]
-    $OnlyCurrentDirectory = $null,
+        [Alias('c')]
+        [switch]
+        $OnlyCurrentDirectory = $null,
 
-    [Alias('l')]
-    [switch]
-    $ListFiles = $null,
+        [Alias('l')]
+        [switch]
+        $ListFiles = $null,
 
-    [Alias('x')]
-    [switch]
-  $Remove = $null,
+        [Alias('x')]
+        [switch]
+        $Remove = $null,
 
-  [Alias('d')]
-  [switch]
-  $Clean = $null
-)
+        [Alias('d')]
+        [switch]
+        $Clean = $null
+    )
 
     if (((-not $Clean) -and (-not $Remove) -and (-not $ListFiles)) -and [string]::IsNullOrWhiteSpace($JumpPath)) { Get-Help z; return; }
  
@@ -97,10 +97,12 @@ function z {
     
     if ((Test-Path $cdHistory)) {
         if ($Remove) {
-        Save-CdCommandHistory $Remove
-        } elseif ($Clean) {
+            Save-CdCommandHistory $Remove
+        }
+        elseif ($Clean) {
             Cleanup-CdCommandHistory
-        } else {
+        }
+        else {
 
             # This causes conflicts with the -Remove parameter. Not sure whether to remove registry entry.
             #$mruList = Get-MostRecentDirectoryEntries
@@ -108,37 +110,42 @@ function z {
             $providerRegex = $null
 
             If ($OnlyCurrentDirectory) {
-                $providerRegex = (Get-FormattedLocation).replace('\','\\') + '\\.*?'
-            } else {
+                $providerRegex = (Get-FormattedLocation).replace('\', '\\') + '\\.*?'
+            }
+            else {
                 $providerRegex = Get-CurrentSessionProviderDrives ((Get-PSProvider).Drives | select -ExpandProperty Name)
             }
 
             $list = @()
 
             $global:history |
-                ? { Get-DirectoryEntryMatchPredicate -path $_.Path -jumpPath $JumpPath -ProviderRegex $providerRegex } | Get-ArgsFilter -Option $Option |
-                % { if ($ListFiles -or (Test-Path $_.Path.FullName)) {$list += $_} }
+            ? { Get-DirectoryEntryMatchPredicate -path $_.Path -jumpPath $JumpPath -ProviderRegex $providerRegex } | Get-ArgsFilter -Option $Option |
+            % { if ($ListFiles -or (Test-Path $_.Path.FullName)) { $list += $_ } }
 
             if ($ListFiles) {
 
                 $newList = $list | % { New-Object PSObject -Property  @{Rank = $_.Rank; Path = $_.Path.FullName; LastAccessed = [DateTime]$_.Time } }
                 Format-Table -InputObject $newList -AutoSize
 
-            } else {
+            }
+            else {
 
                 if ($list.Length -eq 0) {
                     # It's not found in the history file, perhaps it's still a valid directory. Let's check.
                     if ((Test-Path $JumpPath)) {
                         cdX $JumpPath
-                    } else {
-					    Write-Host "$JumpPath Not found"
+                    }
+                    else {
+                        Write-Host "$JumpPath Not found"
                     }
 
-                } else {
+                }
+                else {
                     if ($list.Length -gt 1) {
                         $entry = $list | Sort-Object -Descending { $_.Score } | select -First 1
 
-                    } else {
+                    }
+                    else {
                         $entry = $list[0]
                     }
 
@@ -147,20 +154,20 @@ function z {
                 }
             }
         }
-    } else {
+    }
+    else {
         Save-CdCommandHistory $Remove
     }
 }
 
-function pushdX
-{
-    [CmdletBinding(DefaultParameterSetName='Path', SupportsTransactions=$true, HelpUri='http://go.microsoft.com/fwlink/?LinkID=113370')]
+function pushdX {
+    [CmdletBinding(DefaultParameterSetName = 'Path', SupportsTransactions = $true, HelpUri = 'http://go.microsoft.com/fwlink/?LinkID=113370')]
     param(
-        [Parameter(ParameterSetName='Path', Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(ParameterSetName = 'Path', Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [string]
         ${Path},
 
-        [Parameter(ParameterSetName='LiteralPath', ValueFromPipelineByPropertyName=$true)]
+        [Parameter(ParameterSetName = 'LiteralPath', ValueFromPipelineByPropertyName = $true)]
         [Alias('PSPath')]
         [string]
         ${LiteralPath},
@@ -168,88 +175,86 @@ function pushdX
         [switch]
         ${PassThru},
 
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
         [string]
         ${StackName})
 
-    begin
-    {
+    begin {
         try {
             $outBuffer = $null
-            if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
-            {
+            if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer)) {
                 $PSBoundParameters['OutBuffer'] = 1
             }
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Push-Location', [System.Management.Automation.CommandTypes]::Cmdlet)
-            $scriptCmd = {& $wrappedCmd @PSBoundParameters }
+            $scriptCmd = { & $wrappedCmd @PSBoundParameters }
             $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
             $steppablePipeline.Begin($PSCmdlet)
-        } catch {
+        }
+        catch {
             throw
         }
     }
 
-    process
-    {
+    process {
         try {
             $steppablePipeline.Process($_)
             Save-CdCommandHistory # Build up the DB.
-        } catch {
+        }
+        catch {
             throw
         }
     }
 
-    end
-    {
+    end {
         try {
             $steppablePipeline.End()
-        } catch {
+        }
+        catch {
             throw
         }
     }
 }
 
 function popdX {
-    [CmdletBinding(SupportsTransactions=$true, HelpUri='http://go.microsoft.com/fwlink/?LinkID=113369')]
+    [CmdletBinding(SupportsTransactions = $true, HelpUri = 'http://go.microsoft.com/fwlink/?LinkID=113369')]
     param(
         [switch]
         ${PassThru},
 
-        [Parameter(ValueFromPipelineByPropertyName=$true)]
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
         [string]
         ${StackName})
 
-    begin
-    {
+    begin {
         try {
             $outBuffer = $null
-            if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
-            {
+            if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer)) {
                 $PSBoundParameters['OutBuffer'] = 1
             }
             $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Microsoft.PowerShell.Management\Pop-Location', [System.Management.Automation.CommandTypes]::Cmdlet)
-            $scriptCmd = {& $wrappedCmd @PSBoundParameters }
+            $scriptCmd = { & $wrappedCmd @PSBoundParameters }
             $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
             $steppablePipeline.Begin($PSCmdlet)
-        } catch {
+        }
+        catch {
             throw
         }
     }
 
-    process
-    {
+    process {
         try {
             $steppablePipeline.Process($_)
-        } catch {
+        }
+        catch {
             throw
         }
     }
 
-    end
-    {
+    end {
         try {
             $steppablePipeline.End()
-        } catch {
+        }
+        catch {
             throw
         }
     }
@@ -262,15 +267,14 @@ function popdX {
 }
 
 # A wrapper function around the existing Set-Location Cmdlet.
-function cdX
-{
-    [CmdletBinding(DefaultParameterSetName='Path', SupportsTransactions=$true, HelpUri='http://go.microsoft.com/fwlink/?LinkID=113397')]
+function cdX {
+    [CmdletBinding(DefaultParameterSetName = 'Path', SupportsTransactions = $true, HelpUri = 'http://go.microsoft.com/fwlink/?LinkID=113397')]
     param(
-        [Parameter(ParameterSetName='Path', Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(ParameterSetName = 'Path', Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
         [string]
         ${Path},
 
-        [Parameter(ParameterSetName='LiteralPath', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [Parameter(ParameterSetName = 'LiteralPath', Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
         [Alias('PSPath')]
         [string]
         ${LiteralPath},
@@ -278,36 +282,32 @@ function cdX
         [switch]
         ${PassThru},
 
-        [Parameter(ParameterSetName='Stack', ValueFromPipelineByPropertyName=$true)]
+        [Parameter(ParameterSetName = 'Stack', ValueFromPipelineByPropertyName = $true)]
         [string]
         ${StackName})
 
-    begin
-    {
+    begin {
         $outBuffer = $null
-        if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer))
-        {
+        if ($PSBoundParameters.TryGetValue('OutBuffer', [ref]$outBuffer)) {
             $PSBoundParameters['OutBuffer'] = 1
         }
 
         $PSBoundParameters['ErrorAction'] = 'Stop'
 
         $wrappedCmd = $ExecutionContext.InvokeCommand.GetCommand('Set-Location', [System.Management.Automation.CommandTypes]::Cmdlet)
-        $scriptCmd = {& $wrappedCmd @PSBoundParameters }
+        $scriptCmd = { & $wrappedCmd @PSBoundParameters }
 
         $steppablePipeline = $scriptCmd.GetSteppablePipeline($myInvocation.CommandOrigin)
         $steppablePipeline.Begin($PSCmdlet)
     }
 
-    process
-    {
+    process {
         $steppablePipeline.Process($_)
 
         Save-CdCommandHistory # Build up the DB.
     }
 
-    end
-    {
+    end {
         $steppablePipeline.End()
     }
 }
@@ -315,13 +315,13 @@ function cdX
 function Get-DirectoryEntryMatchPredicate {
     Param(
         [Parameter(
-        ValueFromPipeline=$true,
-        ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         $Path,
 
         [Parameter(
-        ValueFromPipeline=$true,
-        ValueFromPipelineByPropertyName=$true)]
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [string] $JumpPath,
 
         $ProviderRegex
@@ -329,7 +329,7 @@ function Get-DirectoryEntryMatchPredicate {
 
     if ($Path -ne $null) {
 
-        $null = .{
+        $null = . {
             $providerMatches = [System.Text.RegularExpressions.Regex]::Match($Path.FullName, $ProviderRegex).Success
         }
 
@@ -349,14 +349,16 @@ function Get-CurrentSessionProviderDrives([System.Collections.ArrayList] $Provid
 
     if ($ProviderDrives -ne $null -and $ProviderDrives.Length -gt 0) {
         Get-ProviderDrivesRegex $ProviderDrives
-    } else {
+    }
+    else {
 
         # The FileSystemProvider supports \\ and X:\ paths.
         # An ideal solution would be to ask the provider if a path is supported.
         # Supports drives such as C:\ and also UNC \\
         if ((Get-Location).Provider.ImplementingType.Name -eq 'FileSystemProvider') {
             '(?i)^(((' + [String]::Concat( ((Get-Location).Provider.Drives.Name | % { $_ + '|' }) ).TrimEnd('|') + '):\\)|(\\{1,2})).*?'
-        } else {
+        }
+        else {
             Get-ProviderDrivesRegex (Get-Location).Provider.Drives
         }
     }
@@ -371,7 +373,8 @@ function Get-ProviderDrivesRegex([System.Collections.ArrayList] $ProviderDrives)
 
     if ($ProviderDrives.Count -eq 0) {
         '(?i)^(\\{1,2}).*?'
-    } else {
+    }
+    else {
         $uncRootPathRegex = '|(\\{1,2})'
         '(?i)^((' + [String]::Concat( ($ProviderDrives | % { $_ + '|' }) ).TrimEnd('|') + '):\\)' + $uncRootPathRegex + '.*?'
     }
@@ -382,20 +385,20 @@ function Get-Frecency($rank, $time) {
     # Last access date/time
     $dx = (Get-Date).Subtract((New-Object System.DateTime -ArgumentList $time)).TotalSeconds
 
-    if( $dx -lt 3600 ) { return $rank*4 }
+    if ( $dx -lt 3600 ) { return $rank * 4 }
 
-    if( $dx -lt 86400 ) { return $rank*2 }
+    if ( $dx -lt 86400 ) { return $rank * 2 }
 
-    if( $dx -lt 604800 ) { return $rank/2 }
+    if ( $dx -lt 604800 ) { return $rank / 2 }
 
-    return $rank/4
+    return $rank / 4
 }
 
 function Cleanup-CdCommandHistory() {
 
     try {
 
-        for($i = 0; $i -lt $global:history.Length; $i++) {
+        for ($i = 0; $i -lt $global:history.Length; $i++) {
 
             $line = $global:history[$i]
 
@@ -409,7 +412,8 @@ function Cleanup-CdCommandHistory() {
         }
         Remove-Old-History
         WriteHistoryToDisk
-    } catch {
+    }
+    catch {
         Write-Host $_.Exception.ToString() -ForegroundColor Red
     }
 }
@@ -417,7 +421,7 @@ function Cleanup-CdCommandHistory() {
 
 function Remove-Old-History() {
     if ($global:history.Length -gt 1000) {
-        $global:history | ? { $_ -ne $null } | % {$i = 0} {
+        $global:history | ? { $_ -ne $null } | % { $i = 0 } {
 
             $lineObj = $_
             $lineObj.Rank = $lineObj.Rank * 0.99
@@ -426,10 +430,11 @@ function Remove-Old-History() {
             # or
             # If it's rank is greater than 20 and been accessed in the last 30 days it can stay
             if ($lineObj.Age -lt 1209600 -or ($lineObj.Rank -ge 5 -and $lineObj.Age -lt 2592000)) {
-              #$global:history[$i] = ConvertTo-DirectoryEntry (ConvertTo-TextualHistoryEntry $lineObj.Rank $lineObj.Path.FullName $lineObj.Time)
-            } else {
-              Write-Host "Removing old item: Rank:" $lineObj.Rank "Age:" ($lineObj.Age/60/60) "Path:" $lineObj.Path.FullName -ForegroundColor Yellow
-              $global:history[$i] = $null
+                #$global:history[$i] = ConvertTo-DirectoryEntry (ConvertTo-TextualHistoryEntry $lineObj.Rank $lineObj.Path.FullName $lineObj.Time)
+            }
+            else {
+                Write-Host "Removing old item: Rank:" $lineObj.Rank "Age:" ($lineObj.Age / 60 / 60) "Path:" $lineObj.Path.FullName -ForegroundColor Yellow
+                $global:history[$i] = $null
             }
             $i++;
         }
@@ -446,7 +451,7 @@ function Save-CdCommandHistory($removeCurrentDirectory = $false) {
         $foundDirectory = $false
         $runningTotal = 0
 
-        for($i = 0; $i -lt $global:history.Length; $i++) {
+        for ($i = 0; $i -lt $global:history.Length; $i++) {
 
             $line = $global:history[$i]
 
@@ -467,7 +472,8 @@ function Save-CdCommandHistory($removeCurrentDirectory = $false) {
                         $global:history[$i] = $null
                         Write-Host "Removed entry $currentDirectory" -ForegroundColor Green
 
-                    } else {
+                    }
+                    else {
                         $rank++
                         Update-HistoryEntryUsageTime $global:history[$i]
                     }
@@ -481,7 +487,8 @@ function Save-CdCommandHistory($removeCurrentDirectory = $false) {
 
         if (-not $foundDirectory -and $removeCurrentDirectory) {
             Write-Host "Current directory not found in CD history data file" -ForegroundColor Red
-        } else {
+        }
+        else {
 
             if (-not $foundDirectory) {
                 Save-HistoryEntry 1 $currentDirectory
@@ -492,14 +499,15 @@ function Save-CdCommandHistory($removeCurrentDirectory = $false) {
 
         WriteHistoryToDisk
 
-    } catch {
+    }
+    catch {
         Write-Host $_.Exception.ToString() -ForegroundColor Red
     }
 }
 
 function WriteHistoryToDisk() {
-  $newList = GetAllHistoryAsText $global:history
-  Out-File -InputObject $newList -FilePath $cdHistory
+    $newList = GetAllHistoryAsText $global:history
+    Out-File -InputObject $newList -FilePath $cdHistory
 }
 
 function GetAllHistoryAsText($history) {
@@ -509,7 +517,8 @@ function GetAllHistoryAsText($history) {
 function Get-FormattedLocation() {
     if ((Get-Location).Provider.ImplementingType.Name -eq 'FileSystemProvider' -and (Get-Location).Path.Contains('FileSystem::\\')) {
         Get-Location | select -ExpandProperty ProviderPath # The registry provider does return a path which z understands. In other words, I'm too lazy.
-    } else {
+    }
+    else {
         Get-Location | select -ExpandProperty Path
     }
 }
@@ -539,16 +548,16 @@ function ConvertTo-TextualHistoryEntry($rank, $directory, $lastAccessedTicks) {
 function ConvertTo-DirectoryEntry {
     Param(
         [Parameter(
-        Position=0,
-        Mandatory=$true,
-        ValueFromPipeline=$true,
-        ValueFromPipelineByPropertyName=$true)]
+            Position = 0,
+            Mandatory = $true,
+            ValueFromPipeline = $true,
+            ValueFromPipelineByPropertyName = $true)]
         [String]$line
     )
 
     Process {
 
-        $null = .{
+        $null = . {
 
             $pathValue = $line.Substring(25)
 
@@ -563,22 +572,23 @@ function ConvertTo-DirectoryEntry {
                         $fileName = $pathValue.Substring( + 1);
                     }
                 }
-            } catch [System.ArgumentException] { }
+            }
+            catch [System.ArgumentException] { }
 
             $time = [long]::Parse($line.Substring(7, 18), [Globalization.CultureInfo]::InvariantCulture)
         }
 
         @{
-          Rank=GetRankFromLine $line;
-          Time=$time;
-          Path=@{ Name = $fileName; FullName = $pathValue };
-          Age=(Get-Date).Subtract((New-Object System.DateTime -ArgumentList $time)).TotalSeconds;
+            Rank = GetRankFromLine $line;
+            Time = $time;
+            Path = @{ Name = $fileName; FullName = $pathValue };
+            Age  = (Get-Date).Subtract((New-Object System.DateTime -ArgumentList $time)).TotalSeconds;
         }
     }
 }
 
 function GetRankFromLine([String]$line) {
-    $null = .{ $rankStr = $line.Substring(0, 7) }
+    $null = . { $rankStr = $line.Substring(0, 7) }
     [double]::Parse($rankStr, [Globalization.CultureInfo]::InvariantCulture)
 }
 
@@ -591,7 +601,7 @@ function Get-MostRecentDirectoryEntries {
 
 function Get-ArgsFilter {
     Param(
-        [Parameter(ValueFromPipeline=$true)]
+        [Parameter(ValueFromPipeline = $true)]
         [Hashtable]$historyEntry,
 
         [string]
@@ -602,9 +612,11 @@ function Get-ArgsFilter {
 
         if ($Option -in ('Frecency', 'F')) {
             $_['Score'] = (Get-Frecency $_.Rank $_.Time);
-        } elseif ($Option -in ('Time', 'T')) {
+        }
+        elseif ($Option -in ('Time', 'T')) {
             $_['Score'] = $_.Time;
-        } elseif ($Option -in ('Rank', 'R')) {
+        }
+        elseif ($Option -in ('Rank', 'R')) {
             $_['Score'] = $_.Rank;
         }
 
@@ -622,7 +634,7 @@ function Get-ArgsFilter {
 # Get cdHistory and hydrate a in-memory collection
 $global:history = @()
 if ((Test-Path -Path $cdHistory)) {
-  $global:history += Get-Content -Path $cdHistory -Encoding UTF8 | ? { (-not [String]::IsNullOrWhiteSpace($_)) } | ConvertTo-DirectoryEntry
+    $global:history += Get-Content -Path $cdHistory -Encoding UTF8 | ? { (-not [String]::IsNullOrWhiteSpace($_)) } | ConvertTo-DirectoryEntry
 }
 
 $orig_cd = (Get-Alias -Name 'cd').Definition
@@ -643,11 +655,11 @@ $completion_RunningService = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
 
     $global:history | Sort-Object { $_.Rank } -Descending | Where-Object { $_.Path.Name -like "*$wordToComplete*" } |
-        ForEach-Object { New-Object System.Management.Automation.CompletionResult ("'{0}'" -f $_.Path.FullName), $_.Path.FullName, 'ParameterName', ('{0} ({1})' -f $_.Path.Name, $_.Path.FullName) }
+    ForEach-Object { New-Object System.Management.Automation.CompletionResult ("'{0}'" -f $_.Path.FullName), $_.Path.FullName, 'ParameterName', ('{0} ({1})' -f $_.Path.Name, $_.Path.FullName) }
 }
 
-if (-not $global:options) { $global:options = @{CustomArgumentCompleters = @{};NativeArgumentCompleters = @{}}}
+if (-not $global:options) { $global:options = @{CustomArgumentCompleters = @{ }; NativeArgumentCompleters = @{ } } }
 
 $global:options['CustomArgumentCompleters']['z:JumpPath'] = $Completion_RunningService
 
-$function:tabexpansion2 = $function:tabexpansion2 -replace 'End\r\n{','End { if ($null -ne $options) { $options += $global:options} else {$options = $global:options}'
+$function:tabexpansion2 = $function:tabexpansion2 -replace 'End\r\n{', 'End { if ($null -ne $options) { $options += $global:options} else {$options = $global:options}'
