@@ -109,7 +109,11 @@ function z {
             $providerRegex = $null
 
             If ($OnlyCurrentDirectory) {
-                $providerRegex = (Get-FormattedLocation).replace('\','\\') + '\\.*?'
+                $providerRegex = (Get-FormattedLocation).replace('\','\\')
+                if (-not $providerRegex.EndsWith('\\')) {
+                    $providerRegex += '\\'
+                }
+                $providerRegex += '.*?'
             } else {
                 $providerRegex = Get-CurrentSessionProviderDrives ((Get-PSProvider).Drives | select -ExpandProperty Name)
             }
