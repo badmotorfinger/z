@@ -89,13 +89,13 @@ function z {
 )
 
     if (((-not $Clean) -and (-not $Remove) -and (-not $ListFiles)) -and [string]::IsNullOrWhiteSpace($JumpPath)) { Get-Help z; return; }
- 
+
     # If a valid path is passed in to z, treat it like the normal cd command
-    if (-not [string]::IsNullOrWhiteSpace($JumpPath) -and (Test-Path $JumpPath)) {
+    if (-not $ListFiles -and -not [string]::IsNullOrWhiteSpace($JumpPath) -and (Test-Path $JumpPath)) {
         cdX $JumpPath
         return;
     }
-    
+
     if ((Test-Path $cdHistory)) {
         if ($Remove) {
         Save-CdCommandHistory $Remove
