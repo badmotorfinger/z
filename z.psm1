@@ -507,7 +507,7 @@ function Save-CdCommandHistory($removeCurrentDirectory = $false) {
 
 function WriteHistoryToDisk() {
   $newList = GetAllHistoryAsText $global:history
-  Set-Content -Value $newList -Path $cdHistory
+  Set-Content -Value $newList -Path $cdHistory -Encoding UTF8
 }
 
 function GetAllHistoryAsText($history) {
