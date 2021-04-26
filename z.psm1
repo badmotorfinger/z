@@ -81,18 +81,26 @@ function z {
 
     [Alias('x')]
     [switch]
-  $Remove = $null,
+    $Remove = $null,
 
-  [Alias('d')]
-  [switch]
-  $Clean = $null
+    [Alias('d')]
+    [switch]
+    $Clean = $null,
+
+    [Alias('p')]
+    [switch]
+    $Push = $false
 )
 
     if (((-not $Clean) -and (-not $Remove) -and (-not $ListFiles)) -and [string]::IsNullOrWhiteSpace($JumpPath)) { Get-Help z; return; }
 
     # If a valid path is passed in to z, treat it like the normal cd command
     if (-not $ListFiles -and -not [string]::IsNullOrWhiteSpace($JumpPath) -and (Test-Path $JumpPath)) {
-        cdX $JumpPath
+        if ($Push) {
+            pushdX $JumpPath
+        } else {
+            cdX $JumpPath
+        }
         return;
     }
 
@@ -134,9 +142,13 @@ function z {
                 if ($list.Length -eq 0) {
                     # It's not found in the history file, perhaps it's still a valid directory. Let's check.
                     if ((Test-Path $JumpPath)) {
-                        cdX $JumpPath
+                        if ($Push) {
+                            pushdX $JumpPath
+                        } else {
+                            cdX $JumpPath
+                        }
                     } else {
-					    Write-Host "$JumpPath Not found"
+                        Write-Host "$JumpPath Not found"
                     }
 
                 } else {
@@ -147,7 +159,11 @@ function z {
                         $entry = $list[0]
                     }
 
-                    Set-Location $entry.Path.FullName
+                    if ($Push) {
+                        Push-Location $entry.Path.FullName
+                    } else {
+                        Set-Location $entry.Path.FullName
+                    }
                     Save-CdCommandHistory $Remove
                 }
             }
