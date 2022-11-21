@@ -94,6 +94,10 @@ function z {
 
     if (((-not $Clean) -and (-not $Remove) -and (-not $ListFiles)) -and [string]::IsNullOrWhiteSpace($JumpPath)) { Get-Help z; return; }
 
+    if (-not ($IsLinux -or $IsMacOS)) {
+        $JumpPath = $JumpPath.Replace('/', '\\')
+    }
+
     # If a valid path is passed in to z, treat it like the normal cd command
     if (-not $ListFiles -and -not [string]::IsNullOrWhiteSpace($JumpPath) -and (Test-Path $JumpPath)) {
         if ($Push) {
@@ -361,7 +365,7 @@ function Get-DirectoryEntryMatchPredicate {
                 $JumpPath = $JumpPath.Substring(2).TrimEnd('\')
             }
 
-            [System.Text.RegularExpressions.Regex]::Match($Path.Name, [System.Text.RegularExpressions.Regex]::Escape($JumpPath), [System.Text.RegularExpressions.RegexOptions]::IgnoreCase).Success
+            [System.Text.RegularExpressions.Regex]::Match($Path.FullName, [System.Text.RegularExpressions.Regex]::Escape($JumpPath), [System.Text.RegularExpressions.RegexOptions]::IgnoreCase).Success
         }
     }
 }
