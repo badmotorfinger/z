@@ -1,4 +1,4 @@
-﻿$safehome = if ([String]::IsNullOrWhiteSpace($Env:HOME)) { $env:USERPROFILE } else { $Env:HOME } 
+$safehome = if ([String]::IsNullOrWhiteSpace($Env:HOME)) { $env:USERPROFILE } else { $Env:HOME } 
 $cdHistory = Join-Path -Path $safehome -ChildPath '\.cdHistory'
 
 <#
@@ -63,6 +63,15 @@ z foo -o Time
 function z {
     param(
     [Parameter(Position=0)]
+    [ArgumentCompleter( {
+        param ( $commandName,
+                $parameterName,
+                $wordToComplete,
+                $commandAst,
+                $fakeBoundParameters )
+        $command = "Set-Location $wordToComplete"
+        TabExpansion2 $command $command.Length | % CompletionMatches
+    } )]
     [string]
     ${JumpPath},
 
@@ -106,7 +115,7 @@ function z {
 
     if ((Test-Path $cdHistory)) {
         if ($Remove) {
-        Save-CdCommandHistory $Remove
+            Save-CdCommandHistory $Remove
         } elseif ($Clean) {
             Cleanup-CdCommandHistory
         } else {
@@ -178,10 +187,28 @@ function pushdX
     [CmdletBinding(DefaultParameterSetName='Path', SupportsTransactions=$true, HelpUri='http://go.microsoft.com/fwlink/?LinkID=113370')]
     param(
         [Parameter(ParameterSetName='Path', Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [ArgumentCompleter( {
+            param ( $commandName,
+                    $parameterName,
+                    $wordToComplete,
+                    $commandAst,
+                    $fakeBoundParameters )
+            $command = $commandAst -replace "^$commandName", "Push-Location"
+            TabExpansion2 $command $command.Length | % CompletionMatches
+        } )]
         [string]
         ${Path},
 
         [Parameter(ParameterSetName='LiteralPath', ValueFromPipelineByPropertyName=$true)]
+        [ArgumentCompleter( {
+            param ( $commandName,
+                    $parameterName,
+                    $wordToComplete,
+                    $commandAst,
+                    $fakeBoundParameters )
+            $command = $commandAst -replace "^$commandName", "Push-Location"
+            TabExpansion2 $command $command.Length | % CompletionMatches
+        } )]
         [Alias('PSPath')]
         [string]
         ${LiteralPath},
@@ -288,10 +315,28 @@ function cdX
     [CmdletBinding(DefaultParameterSetName='Path', SupportsTransactions=$true, HelpUri='http://go.microsoft.com/fwlink/?LinkID=113397')]
     param(
         [Parameter(ParameterSetName='Path', Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
+        [ArgumentCompleter( {
+            param ( $commandName,
+                    $parameterName,
+                    $wordToComplete,
+                    $commandAst,
+                    $fakeBoundParameters )
+            $command = $commandAst -replace "^$commandName", "Set-Location"
+            TabExpansion2 $command $cursor | % CompletionMatches
+        } )]
         [string]
         ${Path},
 
         [Parameter(ParameterSetName='LiteralPath', Mandatory=$true, ValueFromPipelineByPropertyName=$true)]
+        [ArgumentCompleter( {
+            param ( $commandName,
+                    $parameterName,
+                    $wordToComplete,
+                    $commandAst,
+                    $fakeBoundParameters )
+            $command = $commandAst -replace "^$commandName", "Set-Location"
+            TabExpansion2 $command $command.Length | % CompletionMatches
+        } )]
         [Alias('PSPath')]
         [string]
         ${LiteralPath},
