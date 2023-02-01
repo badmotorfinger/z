@@ -1,4 +1,4 @@
-$safehome = if ([String]::IsNullOrWhiteSpace($Env:HOME)) { $env:USERPROFILE } else { $Env:HOME } 
+﻿$safehome = if ([String]::IsNullOrWhiteSpace($Env:HOME)) { $env:USERPROFILE } else { $Env:HOME } 
 $cdHistory = Join-Path -Path $safehome -ChildPath '\.cdHistory'
 
 <#
@@ -322,7 +322,7 @@ function cdX
                     $commandAst,
                     $fakeBoundParameters )
             $command = $commandAst -replace "^$commandName", "Set-Location"
-            TabExpansion2 $command $cursor | % CompletionMatches
+            TabExpansion2 $command $command.Length | % CompletionMatches
         } )]
         [string]
         ${Path},
@@ -707,12 +707,21 @@ Set-Alias -Name popd -Value popdX -Force -Option AllScope -Scope Global
 
 Export-ModuleMember -Function z, cdX, pushdX, popdX -Alias cd, pushd
 
+function GetHomeLikePath($path) {
+    if ($path.StartsWith($HOME)) {
+        return "~" + $path.Substring($HOME.Length)
+    }
+    return $path
+}
+
 # Tab Completion
 $completion_RunningService = {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-
-    $global:history | Sort-Object { $_.Rank } -Descending | Where-Object { $_.Path.Name -like "*$wordToComplete*" } |
-        ForEach-Object { New-Object System.Management.Automation.CompletionResult ("'{0}'" -f $_.Path.FullName), $_.Path.FullName, 'ParameterName', ('{0} ({1})' -f $_.Path.Name, $_.Path.FullName) }
+    $global:history | Sort-Object { $_.Rank } -Descending | Where-Object { $_.Path.Name -like "*$wordToComplete*" -and $_.Path.FullName -ne $pwd } |
+        ForEach-Object { 
+            $homePath = GetHomeLikePath($_.Path.FullName);
+            New-Object System.Management.Automation.CompletionResult ("'{0}'" -f $homePath), $homePath, 'ParameterName', ('{0} ({1})' -f $_.Path.Name, $homePath) 
+        }
 }
 
 if (-not $global:options) { $global:options = @{CustomArgumentCompleters = @{};NativeArgumentCompleters = @{}}}
