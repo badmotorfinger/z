@@ -1,4 +1,10 @@
-﻿$safehome = if ([String]::IsNullOrWhiteSpace($Env:HOME)) { $env:USERPROFILE } else { $Env:HOME } 
+﻿$safehome = if (![String]::IsNullOrWhiteSpace($env:XDG_CACHE_HOME)) {
+    $env:XDG_CACHE_HOME
+} elseif (![String]::IsNullOrWhiteSpace($env:HOME)) {
+    $env:HOME
+} else {
+    $env:USERPROFILE
+}
 $cdHistory = Join-Path -Path $safehome -ChildPath '\.cdHistory'
 
 <#
