@@ -7,6 +7,16 @@
 }
 $cdHistory = Join-Path -Path $safehome -ChildPath '\.cdHistory'
 
+# The user can set $Z_UsePushLocation to $true to configure z to use Push-location, which allows to use popd/Pop-Location to go back to the previous location.
+# Setting or $Z_UsePushLocation to $false will use Set-Location instead.
+
+if ($Z_UsePushLocation -eq $null)
+{
+    # Set default behaviour to use Push-Location
+    $Z_UsePushLocation = $true;
+}
+
+function z {
 <#
 
 .SYNOPSIS
@@ -66,7 +76,6 @@ CD to the most recently accessed directory matching 'foo'
 z foo -o Time
 
 #>
-function z {
     param(
     [Parameter(Position=0)]
     [string]
@@ -102,7 +111,7 @@ function z {
 
     # If a valid path is passed in to z, treat it like the normal cd command
     if (-not $ListFiles -and -not [string]::IsNullOrWhiteSpace($JumpPath) -and (Test-Path $JumpPath)) {
-        if ($Push) {
+        if ($Push -or $Z_UsePushLocation) {
             pushdX $JumpPath
         } else {
             cdX $JumpPath
@@ -148,7 +157,7 @@ function z {
                 if ($list.Length -eq 0) {
                     # It's not found in the history file, perhaps it's still a valid directory. Let's check.
                     if ((Test-Path $JumpPath)) {
-                        if ($Push) {
+                        if ($Push -or $Z_UsePushLocation) {
                             pushdX $JumpPath
                         } else {
                             cdX $JumpPath
@@ -165,7 +174,7 @@ function z {
                         $entry = $list[0]
                     }
 
-                    if ($Push) {
+                    if ($Push -or $Z_UsePushLocation) {
                         Push-Location $entry.Path.FullName
                     } else {
                         Set-Location $entry.Path.FullName
