@@ -10,7 +10,7 @@ $cdHistory = Join-Path -Path $safehome -ChildPath '\.cdHistory'
 # The user can set $Z_UsePushLocation to $true to configure z to use Push-location, which allows to use popd/Pop-Location to go back to the previous location.
 # Setting or $Z_UsePushLocation to $false will use Set-Location instead.
 
-if ($Z_UsePushLocation -eq $null)
+if ($null -eq $Z_UsePushLocation)
 {
     # Set default behaviour to use Push-Location
     $Z_UsePushLocation = $true;
