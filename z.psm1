@@ -685,8 +685,12 @@ $completion_RunningService = {
         ForEach-Object { New-Object System.Management.Automation.CompletionResult ("'{0}'" -f $_.Path.FullName), $_.Path.FullName, 'ParameterName', ('{0} ({1})' -f $_.Path.Name, $_.Path.FullName) }
 }
 
-if (-not $global:options) { $global:options = @{CustomArgumentCompleters = @{};NativeArgumentCompleters = @{}}}
+if (Get-Command -ErrorAction Ignore -Name 'Register-ArgumentCompleter') {
+    Register-ArgumentCompleter -CommandName 'z' -ParameterName 'JumpPath' -ScriptBlock $completion_RunningService
+} else {
+    if (-not $global:options) { $global:options = @{CustomArgumentCompleters = @{};NativeArgumentCompleters = @{}}}
 
-$global:options['CustomArgumentCompleters']['z:JumpPath'] = $Completion_RunningService
+    $global:options['CustomArgumentCompleters']['z:JumpPath'] = $Completion_RunningService
 
-$function:tabexpansion2 = $function:tabexpansion2 -replace 'End(\r\n|\n){','End { if ($null -ne $options) { $options += $global:options} else {$options = $global:options}'
+    $function:tabexpansion2 = $function:tabexpansion2 -replace 'End(\r\n|\n){','End { if ($null -ne $options) { $options += $global:options} else {$options = $global:options}'
+}
