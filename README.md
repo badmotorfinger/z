@@ -76,7 +76,9 @@ Below is a list of features which have not yet been ported from the original `z`
 
 ### The easy way using PowerShellGet
 
-For those with Windows 10 and above, you can issue a `Install-Module z -AllowClobber` command.
+For those with Windows 10, you can issue a `Install-Module z -AllowClobber` command.
+
+For those running the latest version of PowerShell `PowerShellGet\Install-Module z -Scope CurrentUser -Force -AllowClobber`
 
 For those with Windows Vista or 7 who are using PowerShell version 3 or 4, you'll need to install [PackageManagement](http://go.microsoft.com/fwlink/?LinkID=746217&clcid=0x409) first before executing `Install-Module z -AllowClobber`.
 
