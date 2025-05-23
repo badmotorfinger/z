@@ -22,9 +22,9 @@ Since the cycle of June 2013, this utility has been forged through hours of iter
 
 There are no unit tests yet (one day, perhaps), but its true purpose was never perfection. It was time. Time saved. Knowledge gained.
 
-Its mission is simple: bypass the burden of full pathnames and leap to frecent locations with speed and grace.
+Its mission is simple: bypass the burden of full pathnames and leap to [frecent](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/Places/Frecency_algorithm) locations with speed and grace.
 Stable. Swift. Battle-tested.
-[May it serve you as it has served me](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/Places/Frecency_algorithm)
+May it serve you as it has served me.
 
 ![ExampleUsage]
 
