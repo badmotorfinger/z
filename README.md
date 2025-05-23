@@ -1,6 +1,6 @@
 ---
 
-##Fuel the Codecraft
+## Fuel the Codecraft
 
 Time is finite. The system endures, but only in bursts of stolen hours. Feature requests gather like stardust—brilliant, infinite, out of reach.
 Invoke /coffee to recharge the core and rekindle the forge. Your signal boosts morale. ☕⚡
