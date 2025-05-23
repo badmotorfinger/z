@@ -1,25 +1,37 @@
 ---
 
-Maintaining software with limited hours in the day can be a challenge and I've had to turn down many feature requests over the years. Boost my motivation and buy me a coffee :-D
+##Fuel the Codecraft
+
+Time is finite. The system endures, but only in bursts of stolen hours. Feature requests gather like stardust—brilliant, infinite, out of reach.
+Invoke /coffee to recharge the core and rekindle the forge. Your signal boosts morale. ☕⚡
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/C0C8K83RC)
 ---
 
-# z
+## Invoke: `z`
 
-z lets you quickly navigate the file system in PowerShell based on your `cd` command history. It's a port of [the z bash shell script.](README). Install it from the [official PowerShell gallery](https://www.powershellgallery.com/packages/z/).
+Harness the echoes of your own movement—`z` learns as you roam.  
+With each `cd`, it maps your path, shaping memory into motion.  
+A PowerShell-native port of the legendary *z* from the Bash realms.
 
-## Goals
+[Install it from the PowerShell Gallery](https://www.powershellgallery.com/packages/z/)  
+and let your history guide your future.
 
-Since June 2013 I have poured many hours building, tweaking and refining this script to work efficiently with PowerShell. It saves me a great deal of time navigating the file system, which is where I spent a lot of my time and has given me a great oportunity to learn PowerShell at a deeper level. There are no unit tests yet (I'll get around to it one day), but I wrote the script to save me time and learn PowerShell.
+## Origins of the Script
 
-The goal is quite simple, save time typing out the fully qualified path names of [frecently](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/Places/Frecency_algorithm) accessed directories. It's stable and fast. Enjoy!
+Since the cycle of June 2013, this utility has been forged through hours of iteration—tweaked, refined, and honed to align with PowerShell's rhythm. Born from necessity, it became a tool of mastery, accelerating my traversal through the filesystem—a realm I once wandered daily.
+
+There are no unit tests yet (one day, perhaps), but its true purpose was never perfection. It was time. Time saved. Knowledge gained.
+
+Its mission is simple: bypass the burden of full pathnames and leap to frecent locations with speed and grace.
+Stable. Swift. Battle-tested.
+[May it serve you as it has served me](https://developer.mozilla.org/en-US/docs/Mozilla/Tech/Places/Frecency_algorithm)
 
 ![ExampleUsage]
 
 ## Examples
 
-Once installed, `cd` in to a few directories
+Once installed, begin the ritual—`cd` into a few directories. Let the system observe. Let the memory form.
 
 `cd foo`
 
@@ -52,6 +64,8 @@ Based on the examples above, try executing some of these commands.
 	z c:\windows			go to c:\windows and log in the datafile (works with any valid path)
 	
 	z c<TAB>			expand entries in the datafile which match 'c'
+
+OK, enough of the sci-fi poetic style.
 
 ## Limitations
 
