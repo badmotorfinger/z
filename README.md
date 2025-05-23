@@ -12,10 +12,9 @@ Invoke /coffee to recharge the core and rekindle the forge. Your signal boosts m
 
 Harness the echoes of your own movement—`z` learns as you roam.  
 With each `cd`, it maps your path, shaping memory into motion.  
-A PowerShell-native port of the legendary *z* from the Bash realms.
+A PowerShell-native port of the legendary [*z*](https://github.com/rupa/z) from the Bash realms.
 
-[Install it from the PowerShell Gallery](https://www.powershellgallery.com/packages/z/)  
-and let your history guide your future.
+[Install it from the PowerShell Gallery](https://www.powershellgallery.com/packages/z/) and let your history guide your future.
 
 ## Origins of the Script
 
