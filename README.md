@@ -64,7 +64,7 @@ Based on the examples above, try executing some of these commands.
 	
 	z c<TAB>			expand entries in the datafile which match 'c'
 
-OK, enough of the sci-fi poetic style.
+OK, back to normal writing style.
 
 ## Limitations
 
