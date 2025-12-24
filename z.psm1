@@ -1,11 +1,14 @@
-﻿$safehome = if (![String]::IsNullOrWhiteSpace($env:XDG_CACHE_HOME)) {
-    $env:XDG_CACHE_HOME
+﻿if (![String]::IsNullOrWhiteSpace($env:XDG_CACHE_HOME)) {
+    $cdHistoryDir = Join-Path -Path $env:XDG_CACHE_HOME -ChildPath 'powershell-z'
+    if (!(Test-Path $cdHistoryDir)) {
+        New-Item -ItemType Directory -Path $cdHistoryDir -Force | Out-Null
+    }
+    $cdHistory = Join-Path -Path $cdHistoryDir -ChildPath 'cdHistory'
 } elseif (![String]::IsNullOrWhiteSpace($env:HOME)) {
-    $env:HOME
+    $cdHistory = Join-Path -Path $env:HOME -ChildPath '.cdHistory'
 } else {
-    $env:USERPROFILE
+    $cdHistory = Join-Path -Path $env:USERPROFILE -ChildPath '.cdHistory'
 }
-$cdHistory = Join-Path -Path $safehome -ChildPath '\.cdHistory'
 
 # The user can set $Z_UsePushLocation to $true to configure z to use Push-location, which allows to use popd/Pop-Location to go back to the previous location.
 # Setting or $Z_UsePushLocation to $false will use Set-Location instead.
