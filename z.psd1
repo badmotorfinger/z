@@ -14,7 +14,7 @@ RootModule = 'z.psm1'
 #ModuleToProcess = 'z.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1.14'
+ModuleVersion = '1.1.15'
 
 # ID used to uniquely identify this module
 GUID = 'bc198554-ae1f-4ab6-84ce-5d3a41b74553'
@@ -57,7 +57,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        ReleaseNotes = 'Fixed incorrect usage of the list parameter with a valid jump path.'
+        ReleaseNotes = 'Add support for XDG_CACHE_HOME'
 
     } # End of PSData hashtable
 
